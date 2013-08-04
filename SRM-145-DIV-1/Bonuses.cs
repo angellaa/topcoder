@@ -1,44 +1,45 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
-public class BinaryCode
+/// <summary>
+/// Learning Notes:
+///  - Wasted a lot of time to solve the bonus problem. Turns out that I misunderstood the problem.
+///    I used the percenteges insted of the points to get the top scores.
+///    For this reason I used a separate bonus array that was not required.
+///  
+/// Lesson learnt:
+///  - Read the problem statement and pay attention to the elements in bold. points was in bold!
+///    "give it to the employees that come first in *points*."
+///  - Remember that you can change the input array instead of creating a support array
+/// 
+/// </summary>
+public class Bonuses 
 {
-    public string[] decode(string message)
+    public int[] getDivision(int[] points)
     {
-        return new[] { Decode(message, 0), Decode(message, 1) };
-    }
+        var n = points.Length;
+        var sum = points.Sum();
+        var v = new int[n];
 
-    private string Decode(string message, int start)
-    {
-        int n = message.Length;
-        var c = FromDigitString(message);
-
-        var a = new int[n];
-        a[0] = start;
-
-        for (int i = 1; i < n; ++i)
+        for (int i = 0; i < n; i++)
         {
-            a[i] = c[i - 1] - a[i - 1] - ((i > 1) ? a[i - 2] : 0);
-
-            if (a[i] != 0 && a[i] != 1)
-                return "NONE";
+            v[i] = points[i] * 100 / sum;
         }
 
-        int lastTwo = a[n - 1] + (n > 1 ? a[n - 2] : 0);
+        int diff = 100 - v.Sum();
 
-        return c[n - 1] != lastTwo ? "NONE" : ToDigitString(a);
+        while (diff > 0)
+        {
+            var max = points.Max();
+            var maxi = Array.IndexOf(points, max);
+            points[maxi] = -1;
+            v[maxi]++;
+            diff--;
+        }
+
+        return v;
     }
 
-    private int[] FromDigitString(string s)
-    {
-        return s.Select(x => x - '0').ToArray();
-    }
-
-    private string ToDigitString(IEnumerable<int> v)
-    {
-        return new string(v.Select(x => (char)(x + '0')).ToArray());
-    }
     
     // BEGIN CUT HERE
 
@@ -46,12 +47,10 @@ public class BinaryCode
     {
         try  
         {
-            eq(0,(new BinaryCode()).decode("123210122"),new string[] { "011100011",  "NONE" });
-            eq(1,(new BinaryCode()).decode("11"),new string[] { "01",  "10" });
-            eq(2,(new BinaryCode()).decode("22111"),new string[] { "NONE",  "11001" });
-            eq(3,(new BinaryCode()).decode("123210120"),new string[] { "NONE",  "NONE" });
-            eq(4,(new BinaryCode()).decode("3"),new string[] { "NONE",  "NONE" });
-            eq(5,(new BinaryCode()).decode("12221112222221112221111111112221111"),new string[] { "01101001101101001101001001001101001",  "10110010110110010110010010010110010" });
+            eq(0,(new Bonuses()).getDivision(new int[] {1,2,3,4,5}),new int[] { 6,  13,  20,  27,  34 });
+            eq(1,(new Bonuses()).getDivision(new int[] {5,5,5,5,5,5}),new int[] { 17,  17,  17,  17,  16,  16 });
+            eq(2,(new Bonuses()).getDivision(new int[] {485, 324, 263, 143, 470, 292, 304, 188, 100, 254, 296,
+                255, 360, 231, 311, 275,  93, 463, 115, 366, 197, 470}),new int[] { 8,  6,  4,  2,  8,  5,  5,  3,  1,  4,  5,  4,  6,  3,  5,  4,  1,  8,  1,  6,  3,  8 });
         } 
         catch(Exception exx)  
         {
