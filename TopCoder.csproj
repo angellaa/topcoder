@@ -65,6 +65,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="SRM-144-DIV-1\BinaryCode.cs" />
     <Compile Include="SRM-145-DIV-1\Bonuses.cs" />
+    <Compile Include="SRM-146-DIV-1\RectangularGrid.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
