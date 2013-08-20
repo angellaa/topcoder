@@ -70,6 +70,7 @@
     <Compile Include="SRM-148-DIV-1\CircleGame.cs" />
     <Compile Include="SRM-149-DIV-1\BigBurger.cs" />
     <Compile Include="SRM-150-DIV-1\InterestingDigits.cs" />
+    <Compile Include="SRM-151-DIV-1\Archimedes.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
