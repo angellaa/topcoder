@@ -8,7 +8,11 @@ public class Inventory
     //     "if the *expected* number of sales per month is not a whole number, 
     //     you should round up since it is probably better to have one too many 
     //     items than it is to have one too few"
-    //
+    //   - An additional problem is that I used (s[i] == 0) instead of (d[i] == 0).
+    //     The test case {{0,0}, {10,10}} fail if you don't use the latter.
+    //     There is this constrain "At least one element of daysAvailable will be greater than 0."
+    //     but not sales! If you don't use (d[i] == 0), m will be zero! and sum / m NaN
+    // 
     public int monthlyOrder(int[] s, int[] d)
     {
         double sum = 0;
@@ -16,7 +20,7 @@ public class Inventory
 
         for (int i = 0; i < s.Length; i++)
         {
-            if (s[i] == 0) continue;
+            if (d[i] == 0) continue;
             sum += (30.0 / d[i]) * s[i];
             m++;
         }
