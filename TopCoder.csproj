@@ -73,6 +73,8 @@
     <Compile Include="SRM-151-DIV-1\Archimedes.cs" />
     <Compile Include="SRM-152-DIV-1\LeaguePicks.cs" />
     <Compile Include="SRM-153-DIV-1\Inventory.cs" />
+    <Compile Include="SRM-154-DIV-1\CheatCode.cs" />
+    <Compile Include="SRM-155-DIV-1\PaternityTest.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>

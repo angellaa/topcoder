@@ -6,7 +6,7 @@ namespace TopCoder
     {
         public static void Main(String[] args)
         {
-            RectangularGrid.Test(args);            
+            PaternityTest.Test(args);            
         }
     }
 }
