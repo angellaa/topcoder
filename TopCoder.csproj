@@ -75,6 +75,8 @@
     <Compile Include="SRM-153-DIV-1\Inventory.cs" />
     <Compile Include="SRM-154-DIV-1\CheatCode.cs" />
     <Compile Include="SRM-155-DIV-1\PaternityTest.cs" />
+    <Compile Include="SRM-609-DIV-1\MagicalStringDiv1.cs" />
+    <Compile Include="SRM-609-DIV-1\PackingBallsDiv1.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
