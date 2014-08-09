@@ -19,11 +19,6 @@ public class PenLift
             this.y = y;
         }
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Point);
-        }
-
         public bool Equals(Point other)
         {
             return x == other.x && y == other.y;
@@ -48,11 +43,6 @@ public class PenLift
 
         public Segment(Point p1, Point p2) { this.p1 = p1; this.p2 = p2; }
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Segment);
-        }
-
         public bool Equals(Segment other)
         {
             return p1.Equals(other.p1) && p2.Equals(other.p2) ||
@@ -63,57 +53,20 @@ public class PenLift
         {
             return p1.GetHashCode() ^ p2.GetHashCode();
         }
-
-        public override string ToString()
-        {
-            return string.Format("{0}, {1}, {2}, {3}", x1, y1, x2, y2);
-        }
     }
 
     public int numTimes(string[] segments, int n)
     {
-        var segs = ParseSegments(segments);
-        segs = BuildGraph(segs);
+        List<Segment> segs = ParseSegments(segments);
 
-        // Calculate the numer of connected components
-        var nodes = segs.Select(x => x.p1).Union(segs.Select(x => x.p2)).Distinct().ToList();
-        var qu = new UnionFind(nodes.Count);
-        foreach (var seg in segs)
-        {
-            qu.Connect(nodes.IndexOf(seg.p1), nodes.IndexOf(seg.p2));
-        }
+        segs = BuildSegmentsForGraph(segs);
 
-        int cc = qu.CC();
+        List<Point> nodes = GetUniquePoints(segs);
 
-        // Groups segments in components
-        var components = new Dictionary<int, List<Segment>>();
+        Dictionary<int, List<Segment>> components = BuildConnectedComponents(segs, nodes);
 
-        foreach (var seg in segs)
-        {
-            int root = qu.Root(nodes.IndexOf(seg.p1));
-
-            if (!components.ContainsKey(root))
-                components[root] = new List<Segment> { seg };
-            else
-                components[root].Add(seg);
-        }
-
-        // Calculate degrees
-        int result = cc - 1;
-
-        foreach (var component in components)
-        {
-            var degrees = Degrees(n, nodes, component.Value);
-
-            var odd = degrees.Count(x => x.Value % 2 == 1);
-
-            if (odd >= 2)
-            {
-                result += (odd - 2) / 2;
-            }            
-        }
-
-        return result;
+        int penLiftsForChangingComponent = components.Count - 1;
+        return penLiftsForChangingComponent + components.Sum(component => PenLiftsPerComponent(n, nodes, component));
     }
 
     private static List<Segment> ParseSegments(string[] segments)
@@ -131,111 +84,123 @@ public class PenLift
         }
         return segs;
     }
-
-    private List<Segment> BuildGraph(List<Segment> segs)
+    
+    private List<Segment> BuildSegmentsForGraph(List<Segment> segs)
     {
-        bool intersactionFound;
+        segs = segs.Distinct().ToList();
 
-        do
-        {
-            segs = segs.Distinct().ToList();
+processSegments:
+        for (int i = 0; i < segs.Count; i++)
+            for (int j = i + 1; j < segs.Count; j++)
+            {
+                var seg1 = segs[i];
+                var seg2 = segs[j];
 
-            intersactionFound = false;
-
-            for (int i = 0; i < segs.Count; i++)
-                for (int j = i + 1; j < segs.Count; j++)
+                if (BuildVerticalCollinearSegments(segs, seg1, seg2))
                 {
-                    var seg1 = segs[i];
-                    var seg2 = segs[j];
-
-                    if (seg1.x1 == seg1.x2 && seg2.x1 == seg2.x2 && seg1.x1 == seg2.x1)
-                    {
-                        var points = new[] {seg1.p1, seg1.p2, seg2.p1, seg2.p2}.OrderBy(x => x.y).Distinct().ToList();
-
-                        if (In(seg1.y1, seg2.y1, seg2.y2) || In(seg1.y2, seg2.y1, seg2.y2) ||
-                            In(seg2.y1, seg1.y1, seg1.y2) || In(seg2.y2, seg1.y1, seg1.y2))
-                        {
-                            segs.Remove(seg1);
-                            segs.Remove(seg2);
-
-                            for (int k = 0; k < points.Count - 1; k++)
-                            {
-                                segs.Add(new Segment(points[k], points[k + 1]));
-                            }
-
-                            intersactionFound = true;
-                            goto end;
-                        }
-                    }
-
-                    if (seg1.y1 == seg1.y2 && seg2.y1 == seg2.y2 && seg1.y1 == seg2.y1)
-                    {
-                        var points = new[] {seg1.p1, seg1.p2, seg2.p1, seg2.p2}.OrderBy(x => x.x).Distinct().ToList();
-
-                        if (In(seg1.x1, seg2.x1, seg2.x2) || In(seg1.x2, seg2.x1, seg2.x2) ||
-                            In(seg2.x1, seg1.x1, seg1.x2) || In(seg2.x2, seg1.x1, seg1.x2))
-                        {
-                            segs.Remove(seg1);
-                            segs.Remove(seg2);
-
-                            for (int k = 0; k < points.Count - 1; k++)
-                            {
-                                segs.Add(new Segment(points[k], points[k + 1]));
-                            }
-
-                            intersactionFound = true;
-                            goto end;
-                        }
-                    }
-
-                    var p = Intersection(seg1, seg2);
-
-                    if (p != null)
-                    {
-                        var seg11 = new Segment(seg1.p1, p);
-                        var seg12 = new Segment(seg1.p2, p);
-                        var seg21 = new Segment(seg2.p1, p);
-                        var seg22 = new Segment(seg2.p2, p);
-
-                        segs.Remove(seg1);
-                        segs.Remove(seg2);
-
-                        if (!seg11.p1.Equals(seg11.p2)) segs.Add(seg11);
-                        if (!seg12.p1.Equals(seg12.p2)) segs.Add(seg12);
-                        if (!seg21.p1.Equals(seg21.p2)) segs.Add(seg21);
-                        if (!seg22.p1.Equals(seg22.p2)) segs.Add(seg22);
-
-                        intersactionFound = true;
-                        goto end;
-                    }
+                    goto processSegments;
                 }
 
-            end:
-            ;
-        } 
-        while (intersactionFound);
+                if (BuildHorizontalCollinearSegments(segs, seg1, seg2))
+                {
+                    goto processSegments;
+                }
+
+                if (BuildPerpendicularSegments(segs, seg1, seg2))
+                {
+                    goto processSegments;
+                }
+            }
 
         return segs.Distinct().ToList();
     }
 
-    private static Dictionary<Point, int> Degrees(int n, List<Point> nodes, List<Segment> segs)
+    private bool BuildHorizontalCollinearSegments(List<Segment> segs, Segment seg1, Segment seg2)
     {
-        var degrees = new Dictionary<Point, int>();
-        foreach (var point in nodes)
+        if (seg1.y1 == seg1.y2 && seg2.y1 == seg2.y2 && seg1.y1 == seg2.y1)
         {
-            degrees[point] = 0;
+            var points = GetUniquePoints(seg1, seg2).OrderBy(x => x.x).ToList();
 
-            foreach (var seg in segs)
+            if (In(seg1.x1, seg2.x1, seg2.x2) || In(seg1.x2, seg2.x1, seg2.x2) ||
+                In(seg2.x1, seg1.x1, seg1.x2) || In(seg2.x2, seg1.x1, seg1.x2))
             {
-                if (Equals(point, seg.p1) || Equals(point, seg.p2)) degrees[point]++;
-            }
+                segs.Remove(seg1);
+                segs.Remove(seg2);
 
-            degrees[point] *= n;
+                AddSegmentsBetweenPoints(segs, points);
+
+                return true;
+            }
         }
-        return degrees;
+
+        return false;
     }
-    
-    private Point Intersection(Segment seg1, Segment seg2)
+
+    private bool BuildVerticalCollinearSegments(List<Segment> segs, Segment seg1, Segment seg2)
+    {
+        if (!AreVerticalCollinearAndOverlappedSegments(seg1, seg2)) 
+            return false;
+        
+        var points = GetUniquePoints(seg1, seg2).OrderBy(x => x.y).ToList();
+
+        segs.Remove(seg1);
+        segs.Remove(seg2);
+
+        AddSegmentsBetweenPoints(segs, points);
+
+        return true;
+    }
+
+    private bool AreVerticalCollinearAndOverlappedSegments(Segment seg1, Segment seg2)
+    {
+        return AreVerticallyCollinear(seg1, seg2) && AreVerticallyOverlapped(seg1, seg2);
+    }
+
+    private static bool AreVerticallyCollinear(Segment seg1, Segment seg2)
+    {
+        return seg1.x1 == seg1.x2 && seg2.x1 == seg2.x2 && seg1.x1 == seg2.x1;
+    }
+
+    private bool AreVerticallyOverlapped(Segment seg1, Segment seg2)
+    {
+        return In(seg1.y1, seg2.y1, seg2.y2) || In(seg1.y2, seg2.y1, seg2.y2) ||
+               In(seg2.y1, seg1.y1, seg1.y2) || In(seg2.y2, seg1.y1, seg1.y2);
+    }
+
+    private static void AddSegmentsBetweenPoints(List<Segment> segs, List<Point> points)
+    {
+        for (int k = 0; k < points.Count - 1; k++)
+        {
+            segs.Add(new Segment(points[k], points[k + 1]));
+        }
+    }
+
+    private bool BuildPerpendicularSegments(List<Segment> segs, Segment seg1, Segment seg2)
+    {
+        var p = FindIntersection(seg1, seg2);
+
+        if (p == null)
+        {
+            return false;
+        }
+
+        var seg11 = new Segment(seg1.p1, p);
+        var seg12 = new Segment(seg1.p2, p);
+        var seg21 = new Segment(seg2.p1, p);
+        var seg22 = new Segment(seg2.p2, p);
+
+        segs.Remove(seg1);
+        segs.Remove(seg2);
+
+        if (!seg11.p1.Equals(seg11.p2)) segs.Add(seg11);
+        if (!seg12.p1.Equals(seg12.p2)) segs.Add(seg12);
+        if (!seg21.p1.Equals(seg21.p2)) segs.Add(seg21);
+        if (!seg22.p1.Equals(seg22.p2)) segs.Add(seg22);
+
+        return true;
+    }
+
+    private Point FindIntersection(Segment seg1, Segment seg2)
     {
         var p = IntersectionTo(seg1, seg2);
         
@@ -251,6 +216,7 @@ public class PenLift
             if (InInclusive(p.x, seg2.x1, seg2.x2) && InInclusive(p.y, seg1.y1, seg1.y2))
             {
                 int count = 0;
+
                 if (p.Equals(seg1.p1)) count++;
                 if (p.Equals(seg1.p2)) count++;
                 if (p.Equals(seg2.p1)) count++;
@@ -282,6 +248,69 @@ public class PenLift
         return min < x && x < max;
     }
 
+    private static Dictionary<Point, int> Degrees(int n, List<Point> nodes, List<Segment> segs)
+    {
+        var degrees = new Dictionary<Point, int>();
+
+        foreach (var point in nodes)
+        {
+            degrees[point] = 0;
+
+            foreach (var seg in segs)
+            {
+                if (point.Equals(seg.p1) || point.Equals(seg.p2)) degrees[point]++;
+            }
+
+            degrees[point] *= n;
+        }
+
+        return degrees;
+    }
+
+
+    private static List<Point> GetUniquePoints(List<Segment> segs)
+    {
+        return GetUniquePoints(segs.ToArray());
+    }
+
+    private static List<Point> GetUniquePoints(params Segment[] segs)
+    {
+        return segs.Select(x => x.p1).Union(segs.Select(x => x.p2)).Distinct().ToList();
+    }
+
+    private static int PenLiftsPerComponent(int n, List<Point> nodes, KeyValuePair<int, List<Segment>> component)
+    {
+        Dictionary<Point, int> degrees = Degrees(n, nodes, component.Value);
+
+        var odds = degrees.Count(x => x.Value % 2 == 1);
+
+        return odds >= 2 ? (odds - 2)/2 : 0;
+    }
+
+    private static Dictionary<int, List<Segment>> BuildConnectedComponents(List<Segment> segs, List<Point> nodes)
+    {
+        var components = new Dictionary<int, List<Segment>>();
+
+        var qu = new UnionFind(nodes.Count);
+
+        foreach (var seg in segs)
+        {
+            qu.Connect(nodes.IndexOf(seg.p1), nodes.IndexOf(seg.p2));
+        }
+
+        foreach (var seg in segs)
+        {
+            int root = qu.Root(nodes.IndexOf(seg.p1));
+
+            if (!components.ContainsKey(root))
+                components[root] = new List<Segment> {seg};
+            else
+                components[root].Add(seg);
+        }
+
+        return components;
+    }    
+    
     public class UnionFind
     {
         private readonly int[] parent;
