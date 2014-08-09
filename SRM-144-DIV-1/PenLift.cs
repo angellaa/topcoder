@@ -73,7 +73,7 @@ public class PenLift
     public int numTimes(string[] segments, int n)
     {
         var segs = ParseSegments(segments);
-        segs = BuildGraph(segs);
+        segs = BuildGraph(segs.Distinct().ToList());
 
         // Calculate the numer of connected components
         var nodes = segs.Select(x => x.p1).Union(segs.Select(x => x.p2)).Distinct().ToList();
@@ -393,6 +393,10 @@ public class PenLift
                "-252927 923907 -252927 580961","1000000 549481 -971965 549481",
                "-909294 66849 628981 66849","-252927 418077 628981 418077",
                "159038 -171934 -909294 -171934","-252927 549481 159038 549481"}, 824759),19);
+            eq(6,
+                (new PenLift()).numTimes(
+                    new string[]
+                    {"0 0 0 1", "0 0 -1 0", "0 0 1 0", "0 0 0 1", "0 2 0 3", "0 2 -1 2", "0 2 1 2", "0 2 0 3"}, 1), 3);
         } 
         catch( Exception exx)  {
             System.Console.WriteLine(exx);
