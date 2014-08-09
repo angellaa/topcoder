@@ -340,13 +340,6 @@ processSegments:
         }
     }
     
-    private long P(int n) { long result = 1; for (var i = 1; i <= n; i++) result *= i; return result; }
-    private long D(int n, int k) { long result = 1; for (var i = 0; i < k; i++) result *= n--; return result; }
-    private long Dr(int n, int k) { long result = 1; for (var i = 0; i < k; i++) result *= n; return result; }
-    private long C(int n, int k) { return D(n, k) / P(k); }
-    private long Cr(int n, int k) { return C(n + k - 1, k); }
-
-
 // BEGIN CUT HERE
 
     private void Draw(List<Segment> segs, int id = 0)
