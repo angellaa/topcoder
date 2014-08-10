@@ -38,10 +38,9 @@ public class PowerOutage
         }
     }
 
-    private int weight = 0;
-    private int bestWeight = int.MaxValue;
-    private int[] visitedNodes;
+    private int highestWeight = 0;
     private HashSet<Edge> visitedEdges;
+    private HashSet<Edge> highestEdges; 
 
     public int estimateTimeOut(int[] fromJunction, int[] toJunction, int[] ductLength)
     {
@@ -50,57 +49,50 @@ public class PowerOutage
         for (int i = 0; i < fromJunction.Length; i++)
         {
             graph.AddEdge(new Edge(fromJunction[i], toJunction[i], ductLength[i]));
-            graph.AddEdge(new Edge(toJunction[i], fromJunction[i], ductLength[i]));
         }
 
         visitedEdges = new HashSet<Edge>();
-        visitedNodes = new int[50];
-
-        for (int i = 0; i < 50; i++)
-        {
-            visitedNodes[i] = fromJunction.Union(toJunction).Contains(i) ? 0 : 2;
-        }
 
         Traverse(graph, 0);
 
-        return bestWeight;
+        // Read the problem statement carefully! The key part is that "the graph will never contain a loop".
+        // This simplify the problem a lot and allows a quick implementation with a simple tree traversal.
+
+        // This calculate the cost of visiting all the edges 2 times...
+        int result = graph.Adj.SelectMany(hashSet => hashSet).Sum(edge => 2*edge.Weight);
+
+        // but the the path with the highest sum will be done only once and at the end!
+        return result - highestEdges.Sum(x => x.Weight);
     }
 
     private void Traverse(Graph graph, int p)
     {
-        if (weight > bestWeight)
-            return;
-
-        if (visitedNodes.All(x => x > 0))
+        if (graph.Adj[p].Count == 0)
         {
-            if (weight < bestWeight) bestWeight = weight;
-            return;
+            int weight = visitedEdges.Sum(x => x.Weight);
+            if (weight > highestWeight)
+            {
+                highestEdges = new HashSet<Edge>(visitedEdges);
+                highestWeight = weight;
+            }
         }
 
-        foreach (var edge in graph.Adj[p].Except(visitedEdges))
+        foreach (var edge in graph.Adj[p])
         {
-            weight += edge.Weight;
             visitedEdges.Add(edge);
-            visitedNodes[edge.From]++;
-            visitedNodes[edge.To]++;
-
             Traverse(graph, edge.To);
-
-            weight -= edge.Weight;
             visitedEdges.Remove(edge);
-            visitedNodes[edge.From]--;
-            visitedNodes[edge.To]--;
         }
     }
 
 // BEGIN CUT HERE
     public static void Main(String[] args) {
         try  {
-            eq(0,(new PowerOutage()).estimateTimeOut(new int[] {0}, new int[] {1}, new int[] {10}),10);
-            eq(1,(new PowerOutage()).estimateTimeOut(new int[] {0,1,0}, new int[] {1,2,3}, new int[] {10,10,10}),40);
-            eq(2,(new PowerOutage()).estimateTimeOut(new int[] {0,0,0,1,4}, new int[] {1,3,4,2,5}, new int[] {10,10,100,10,5}),165);
-            eq(3,(new PowerOutage()).estimateTimeOut(new int[] {0,0,0,1,4,4,6,7,7,7,20}, new int[] {1,3,4,2,5,6,7,20,9,10,31}, new int[] {10,10,100,10,5,1,1,100,1,1,5}),281);
-            eq(4,(new PowerOutage()).estimateTimeOut(new int[] {0,0,0,0,0}, new int[] {1,2,3,4,5}, new int[] {100,200,300,400,500}),2500);
+            eq(0, (new PowerOutage()).estimateTimeOut(new int[] { 0 }, new int[] { 1 }, new int[] { 10 }), 10);
+            eq(1, (new PowerOutage()).estimateTimeOut(new int[] { 0, 1, 0 }, new int[] { 1, 2, 3 }, new int[] { 10, 10, 10 }), 40);
+            eq(2, (new PowerOutage()).estimateTimeOut(new int[] { 0, 0, 0, 1, 4 }, new int[] { 1, 3, 4, 2, 5 }, new int[] { 10, 10, 100, 10, 5 }), 165);
+            eq(3, (new PowerOutage()).estimateTimeOut(new int[] { 0, 0, 0, 1, 4, 4, 6, 7, 7, 7, 20 }, new int[] { 1, 3, 4, 2, 5, 6, 7, 20, 9, 10, 31 }, new int[] { 10, 10, 100, 10, 5, 1, 1, 100, 1, 1, 5 }), 281);
+            eq(4, (new PowerOutage()).estimateTimeOut(new int[] { 0, 0, 0, 0, 0 }, new int[] { 1, 2, 3, 4, 5 }, new int[] { 100, 200, 300, 400, 500 }), 2500);
             eq(5, (new PowerOutage()).estimateTimeOut(
                 new int[] {0, 0, 1, 1, 0, 2, 3, 5, 0, 8, 4, 0, 7, 11, 0, 7, 4, 1, 10, 0, 14, 1, 14, 2, 5, 22, 17, 20, 11, 4, 9, 17, 22, 22, 11, 34}, 
                 new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36},
