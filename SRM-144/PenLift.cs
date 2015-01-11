@@ -373,7 +373,7 @@ processSegments:
         bitmap.Save(string.Format(@"c:\temp\segments{0}.jpeg", id));
     }
 
-    public static void Main(String[] args) {
+    public static void Test(String[] args) {
         try  {
             eq(0, (new PenLift()).numTimes(new string[] { "-10 0 10 0", "0 -10 0 10" }, 1), 1);
             eq(1, (new PenLift()).numTimes(new string[] { "-10 0 0 0", "0 0 10 0", "0 -10 0 0", "0 0 0 10" }, 1), 1);

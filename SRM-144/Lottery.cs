@@ -41,7 +41,7 @@ public class Lottery
     private long Cr(int n, int k) { return C(n + k - 1, k); }
 
 // BEGIN CUT HERE
-    public static void Main(String[] args) {
+    public static void Test(String[] args) {
         try  {
             eq(0,(new Lottery()).sortByOdds(new string[] {"PICK ANY TWO: 10 2 F F"
                ,"PICK TWO IN ORDER: 10 2 T F"

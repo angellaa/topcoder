@@ -11,7 +11,7 @@ public class Time
     }
 
 // BEGIN CUT HERE
-    public static void Main(String[] args) {
+    public static void Test(String[] args) {
         try  {
             eq(0,(new Time()).whatTime(0),"0:0:0");
             eq(1,(new Time()).whatTime(3661),"1:1:1");

@@ -86,7 +86,7 @@ public class PowerOutage
     }
 
 // BEGIN CUT HERE
-    public static void Main(String[] args) {
+    public static void Test(String[] args) {
         try  {
             eq(0, (new PowerOutage()).estimateTimeOut(new int[] { 0 }, new int[] { 1 }, new int[] { 10 }), 10);
             eq(1, (new PowerOutage()).estimateTimeOut(new int[] { 0, 1, 0 }, new int[] { 1, 2, 3 }, new int[] { 10, 10, 10 }), 40);
